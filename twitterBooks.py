@@ -1,5 +1,7 @@
 import os
-
+import requests
+import tweepy, webbrowser
+from datetime import datetime, date, time
 def updateFile():		#fill cash if it's empty
 	fullFile = open("fullText.txt", "r")
 	block = 5*1
@@ -31,7 +33,7 @@ def twitter():
 	
 	#check: twit was here
 		
-	#to twit
+	#to twit    api.update_status(twit,id_reply)
 	
 	text = file.read()
 	if len(text) == 0:
@@ -41,5 +43,35 @@ def twitter():
 	return
 
 if __name__ == "__main__":
+	"""
 	if updateFile() == -1:
 		print("end!")
+	"""
+	f = open("tokens.txt", "r")
+	CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET = f.read().split()
+	f.close()
+	
+	auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+	auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+	api = tweepy.API(auth)
+
+	public_tweets = api.user_timeline()
+	lastTweet = public_tweets[0]
+	
+	
+	twi = lastTweet.created_at
+	now = datetime.now()
+	t = datetime(1995, 3, 6, 10, 10, 10)
+	five = time(hour=5)
+	print(twi)
+	print(now)
+	print(t)
+	print(time(t))
+	print(five)
+	#print(t-five)
+	
+	
+	
+	
+	
+	
