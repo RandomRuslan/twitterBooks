@@ -1,7 +1,7 @@
 import os
 import requests
-import tweepy, webbrowser
-from datetime import datetime, date, time
+import tweepy
+from datetime import datetime, timedelta
 def updateFile():		#fill cash if it's empty
 	fullFile = open("fullText.txt", "r")
 	block = 5*1
@@ -27,13 +27,13 @@ def updateFile():		#fill cash if it's empty
 	os.rename("tmp.txt", "fullText.txt")
 	return 0 
 	
-def twitter():
+def twitter():	#to tweet
 	file = open("cashText.txt", "+")
 	text = file.read(140)
 	
-	#check: twit was here
+	#check: tweet was here
 		
-	#to twit    api.update_status(twit,id_reply)
+	#to tweet    api.update_status(tweet,id_reply)
 	
 	text = file.read()
 	if len(text) == 0:
@@ -47,28 +47,37 @@ if __name__ == "__main__":
 	if updateFile() == -1:
 		print("end!")
 	"""
-	f = open("tokens.txt", "r")
-	CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET = f.read().split()
+	#get keys and tokens
+	f = open("const.txt", "r")
+	CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET, TIME_KEY = f.read().split()
 	f.close()
 	
+	#connect with twitter
 	auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 	auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
 	api = tweepy.API(auth)
 
-	public_tweets = api.user_timeline()
-	lastTweet = public_tweets[0]
+	tweets = api.user_timeline()
+	lastTweet = tweets[0]
+	
+	#get real time
+	url = "http://api.timezonedb.com/v2/get-time-zone"
+	params = {
+		'key' : TIME_KEY,
+		'format' : 'json',
+		'by' : 'zone',
+		'zone' : 'Europe/London'
+	}
+	nowTime = requests.get(url, params=params).json()
+	nowTime = datetime.strptime(nowTime["formatted"], "%Y-%m-%d %H:%M:%S")
+
+	if(nowTime - lastTweet.created_at > timedelta(hours=5)):
+		print(nowTime, lastTweet.created_at)
+		
+		
 	
 	
-	twi = lastTweet.created_at
-	now = datetime.now()
-	t = datetime(1995, 3, 6, 10, 10, 10)
-	five = time(hour=5)
-	print(twi)
-	print(now)
-	print(t)
-	print(time(t))
-	print(five)
-	#print(t-five)
+
 	
 	
 	
