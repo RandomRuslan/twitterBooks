@@ -2,17 +2,21 @@ import os
 import requests
 import tweepy
 from datetime import datetime, timedelta
-def updateFile():		#fill cash if it's empty
+def updateFile():		#fill cash if it's empty	
+	print("updateFile")
 	fullFile = open("fullText.txt", "r")
-	block = 5*1
+	block = 140*10
 	text = fullFile.read(block)
 	if len(text) == 0:
 		fullFile.close()
+		cashFile = open("cashText.txt", "w")
+		cashFile.write(text)
+		cashFile.close()
 		return -1
-		
+
 	cashFile = open("cashText.txt", "w")
 	cashFile.write(text)
-	cashFile.close()	
+	cashFile.close()
 	
 	tmpFile = open("tmp.txt", "w")
 	while True:		
@@ -24,29 +28,43 @@ def updateFile():		#fill cash if it's empty
 	tmpFile.close()
 	
 	os.remove("fullText.txt")
-	os.rename("tmp.txt", "fullText.txt")
+	os.rename("tmp.txt", "fullText.txt")	
 	return 0 
-	
-def twitter():	#to tweet
-	file = open("cashText.txt", "+")
-	text = file.read(140)
-	
-	#check: tweet was here
-		
-	#to tweet    api.update_status(tweet,id_reply)
-	
+
+def toTweet(api, lastTweet):	#to tweet
+	print("tweet")
+	file = open("cashText.txt", "r")
+	tweet = file.read(140)
 	text = file.read()
+	file.close()
+	
+	#check: tweet was here or cashText is empty
+	if(tweet == lastTweet.text or len(tweet) == 0):
+		if len(text) == 0:
+			if updateFile() == -1:
+				file.close()
+				return -1
+			return toTweet(api, lastTweet)
+		elif len(text) < 140:
+			tweet = text
+			text = ''
+		else:
+			tweet = text[:140]
+			text = text[140:]
+	    
+	api.update_status(tweet) #to tweet
+	
 	if len(text) == 0:
 		if updateFile() == -1:
 			return -1
-	
+	else:
+		file = open("cashText.txt", "w")
+		file.write(text)
+		file.close()
 	return
 
 if __name__ == "__main__":
-	"""
-	if updateFile() == -1:
-		print("end!")
-	"""
+
 	#get keys and tokens
 	f = open("const.txt", "r")
 	CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET, TIME_KEY = f.read().split()
@@ -70,15 +88,10 @@ if __name__ == "__main__":
 	}
 	nowTime = requests.get(url, params=params).json()
 	nowTime = datetime.strptime(nowTime["formatted"], "%Y-%m-%d %H:%M:%S")
-
 	if(nowTime - lastTweet.created_at > timedelta(hours=5)):
-		print(nowTime, lastTweet.created_at)
-		
-		
-	
-	
+		if toTweet(api, lastTweet) == -1:
+			print("The End!")
 
-	
 	
 	
 	
